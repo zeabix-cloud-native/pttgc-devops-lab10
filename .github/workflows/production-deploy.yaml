@@ -1,0 +1,42 @@
+name: Production Deploy Workflow
+
+on:
+  tag:
+    branches:
+      - main
+
+jobs:
+
+  retag:
+    runs-on: ubuntu-latest
+    name: Retag image for deploy
+    steps:
+      - uses: azure/docker-login@v1
+        with:
+          login-server: ${{ secrets.ACR_LOGIN_SERVER }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+      - run: docker pull ${{ secrets.ACR_LOGIN_SERVER }}/user-service:${{ github.sha }}
+      - run: docker tag ${{ secrets.ACR_LOGIN_SERVER }}/user-service:${{ github.sha }} ${{ secrets.ACR_LOGIN_SERVER }}/user-service:${{ github.ref }}
+      - run: docker push ${{ secrets.ACR_LOGIN_SERVER }}/user-service:${{ github.ref }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy via argoCD
+    needs: retag
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          repository: "zeabix-cloud-native/pttgc-devops-lab10-cd"
+          ref: 'main'
+          token: ${{ secrets.CD_PAT }}
+      - name: Update image version
+        run: yq -i e '.userService.tag="${{ github.ref }}"' values.yaml
+        working-directory: ./production
+      - name: Commit & Push changes
+        run: |
+          git config --global user.email 'DevOps'
+          git config --global user.name  'devops@zeabix.com'
+          git add .
+          git commit -m "CD deployment to production with tag ${{ github.ref }}"
+          git push https://${{ secrets.CD_PAT }}@github.com/zeabix-cloud-native/pttgc-devops-lab10-cd.git
