@@ -37,3 +37,4 @@ jobs:
         uses: actions-js/push@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          repository: "zeabix-cloud-native/pttgc-devops-lab10-cd"

@@ -7,12 +7,21 @@ on:
   workflow_dispatch:
 
 jobs:
-  login:
+    deploy:
     runs-on: ubuntu-latest
-    name: Login ACR
+    name: Deploy via argoCD
+    needs: build
     steps:
-      - uses: azure/docker-login@v1
+      - uses: actions/checkout@v3
         with:
-          login-server: ${{ secrets.ACR_LOGIN_SERVER }}
-          username: ${{ secrets.ACR_USERNAME }}
-          password: ${{ secrets.ACR_PASSWORD }}
+          repository: "zeabix-cloud-native/pttgc-devops-lab10-cd"
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Update image version
+        run: yq -i e '.userService.tag="${{ github.sha }}"' values.yaml
+        working-directory: ./production
+      - name: Commit & Push changes
+        uses: actions-js/push@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          repository: "zeabix-cloud-native/pttgc-devops-lab10-cd"
