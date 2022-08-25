@@ -29,5 +29,12 @@ jobs:
         with:
           repository: "zeabix-cloud-native/pttgc-devops-lab10-cd"
       - name: Update image version
-        run: yq -i e ".userService.tag=${{ github.sha }}" values.yaml
+        run: yq -i e '.userService.tag="${{ github.sha }}"' values.yaml
         working-directory: ./production
+      - name: Commit and Push
+        run: |
+          git config --global user.name 'DevOps'
+          git config --global user.email 'devops@zeabix.com'
+          git add .
+          git commit -m "Automate deployment for ${{ github.sha }}"
+          git push
