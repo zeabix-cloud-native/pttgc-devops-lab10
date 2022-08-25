@@ -19,9 +19,13 @@ jobs:
           login-server: ${{ secrets.ACR_LOGIN_SERVER }}
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
+      - name: Get the version
+        id: get_version
+        run: echo ::set-output name=VERSION::$(echo $GITHUB_REF | cut -d / -f 3)
+      - run: echo "Retag image from tag ${{ github.sha }} to ${{ steps.get_version.outputs.VERSION }}"
       - run: docker pull ${{ secrets.ACR_LOGIN_SERVER }}/user-service:${{ github.sha }}
-      - run: docker tag ${{ secrets.ACR_LOGIN_SERVER }}/user-service:${{ github.sha }} ${{ secrets.ACR_LOGIN_SERVER }}/user-service:${{ github.ref }}
-      - run: docker push ${{ secrets.ACR_LOGIN_SERVER }}/user-service:${{ github.ref }}
+      - run: docker tag ${{ secrets.ACR_LOGIN_SERVER }}/user-service:${{ github.sha }} ${{ secrets.ACR_LOGIN_SERVER }}/user-service:${{ steps.get_version.outputs.VERSION }}
+      - run: docker push ${{ secrets.ACR_LOGIN_SERVER }}/user-service:${{ steps.get_version.outputs.VERSION }}
 
   deploy:
     runs-on: ubuntu-latest
@@ -33,8 +37,12 @@ jobs:
           repository: "zeabix-cloud-native/pttgc-devops-lab10-cd"
           ref: 'main'
           token: ${{ secrets.CD_PAT }}
+      - name: Get the version
+        id: get_version
+        run: echo ::set-output name=VERSION::$(echo $GITHUB_REF | cut -d / -f 3)
+      - run: echo "Retag image from tag ${{ github.sha }} to ${{ steps.get_version.outputs.VERSION }}"
       - name: Update image version
-        run: yq -i e '.userService.tag="${{ github.ref }}"' values.yaml
+        run: yq -i e '.userService.tag="${{ steps.get_version.outputs.VERSION }}"' values.yaml
         working-directory: ./production
       - name: Commit & Push changes
         run: |
