@@ -13,6 +13,6 @@ jobs:
     steps:
       - uses: azure/docker-login@v1
         with:
-          login-server: contoso.azurecr.io
+          login-server: ${{ secrets.ACR_LOGIN_SERVER }}
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
