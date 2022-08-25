@@ -23,6 +23,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     name: Deploy via argoCD
+    needs: build
     steps:
       - uses: actions/checkout@v3
         with:
