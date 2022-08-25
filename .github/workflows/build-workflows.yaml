@@ -1,0 +1,15 @@
+name: Build Workflow
+
+on:
+	push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build Docker 
+    steps:
+      - uses: actions/checkout@v3
+      - run: |
+        docker build -t zeabix/user-service:${{ github.sha }} .
