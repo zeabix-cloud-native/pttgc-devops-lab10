@@ -6,6 +6,7 @@ on:
       - main
 
 jobs:
+
   build:
     runs-on: ubuntu-latest
     name: Build Docker 
@@ -18,3 +19,14 @@ jobs:
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
       - run: docker push ${{ secrets.ACR_LOGIN_SERVER }}/user-service:${{ github.sha }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy via argoCD
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          repository: "zeabix-cloud-native/pttgc-devops-lab10"
+      - name: Update image version
+        run: yq -i e ".userService.tag=${{ github.sha }}" values.yaml
+        working-directory: ./production
