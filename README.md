@@ -51,7 +51,7 @@ jobs:
           token: ${{ secrets.CD_PAT }}
       - name: Update image version
         run: yq -i e '.userService.tag="${{ github.sha }}"' values.yaml
-        working-directory: ./production
+        working-directory: ./dev
       - name: Commit & Push changes
         run: |
           git config --global user.email 'DevOps'
